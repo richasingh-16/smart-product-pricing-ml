@@ -1,106 +1,76 @@
-# ML Challenge 2025 Problem Statement
+# 🧠 Smart Product Pricing 
 
-## Smart Product Pricing Challenge
+The goal is to develop a model that predicts optimal e-commerce product prices by analyzing both **textual descriptions** and **product images**.  
+The model combines **Natural Language Processing (NLP)** and **Computer Vision (CV)** techniques for multimodal learning.
 
-In e-commerce, determining the optimal price point for products is crucial for marketplace success and customer satisfaction. Your challenge is to develop an ML solution that analyzes product details and predict the price of the product. The relationship between product attributes and pricing is complex - with factors like brand, specifications, product quantity directly influence pricing. Your task is to build a model that can analyze these product details holistically and suggest an optimal price.
+---
 
-### Data Description:
+## 📌 Problem Statement
 
-The dataset consists of the following columns:
+In e-commerce, determining the optimal price point for products is crucial for profitability and customer satisfaction.  
+The challenge requires building a model that predicts the price of a product using only the provided dataset — without any external data or price lookups.
 
-1. **sample_id:** A unique identifier for the input sample
-2. **catalog_content:** Text field containing title, product description and an Item Pack Quantity(IPQ) concatenated.
-3. **image_link:** Public URL where the product image is available for download. 
-   Example link - https://m.media-amazon.com/images/I/71XfHPR36-L.jpg
-   To download images use `download_images` function from `src/utils.py`. See sample code in `src/test.ipynb`.
-4. **price:** Price of the product (Target variable - only available in training data)
+Each product has:
+- 🧾 `catalog_content` → title, description, and item quantity text  
+- 🖼️ `image_link` → public product image URL  
+- 💲 `price` → the target variable (for training only)
 
-### Dataset Details:
+---
 
-- **Training Dataset:** 75k products with complete product details and prices
-- **Test Set:** 75k products for final evaluation
+## 📊 Dataset Details
 
-### Output Format:
+| File | Description |
+|------|--------------|
+| `train.csv` | 75,000 training products (with prices) |
+| `test.csv` | 75,000 test products (without prices) |
+| `sample_test.csv` | Sample test input |
+| `sample_test_out.csv` | Example output format |
+| `utils.py` | Helper for downloading images |
+| `extract_text_features.py` | TF-IDF + SVD text embedding |
+| `extract_image_features.py` | CNN (ResNet18) image embedding |
+| `train_model.py` | Combines text + image features, trains LightGBM model |
 
-The output file should be a CSV with 2 columns:
+---
 
-1. **sample_id:** The unique identifier of the data sample. Note the ID should match the test record sample_id.
-2. **price:** A float value representing the predicted price of the product.
+## ⚙️ Pipeline Overview
 
-Note: Make sure to output a prediction for all sample IDs. If you have less/more number of output samples in the output file as compared to test.csv, your output won't be evaluated.
+1. **Text Feature Extraction (NLP)**  
+   - TF-IDF vectorization on `catalog_content`  
+   - Dimensionality reduction using Truncated SVD → 200 components  
 
-### File Descriptions:
+2. **Image Feature Extraction (CV)**  
+   - Pretrained ResNet18 (ImageNet weights)  
+   - Extracts 2048-dimensional embeddings  
+   - Features saved as `.pkl` for efficient re-use  
 
-*Source files*
+3. **Model Training (ML)**  
+   - LightGBM Regressor with early stopping  
+   - Trained on combined text + image feature vectors  
 
-1. **src/utils.py:** Contains helper functions for downloading images from the image_link. You may need to retry a few times to download all images due to possible throttling issues.
-2. **sample_code.py:** Sample dummy code that can generate an output file in the given format. Usage of this file is optional.
+4. **Evaluation Metric**  
+   - SMAPE (Symmetric Mean Absolute Percentage Error)
 
-*Dataset files*
+---
 
-1. **dataset/train.csv:** Training file with labels (`price`).
-2. **dataset/test.csv:** Test file without output labels (`price`). Generate predictions using your model/solution on this file's data and format the output file to match sample_test_out.csv
-3. **dataset/sample_test.csv:** Sample test input file.
-4. **dataset/sample_test_out.csv:** Sample outputs for sample_test.csv. The output for test.csv must be formatted in the exact same way. Note: The predictions in the file might not be correct
+## 🧮 Evaluation Metric
 
-### Constraints:
+The performance is measured using **SMAPE**:
 
-1. You will be provided with a sample output file. Format your output to match the sample output file exactly. 
+\[
+SMAPE = \frac{1}{n} \sum \frac{|pred - actual|}{(|pred| + |actual|)/2} \times 100
+\]
 
-2. Predicted prices must be positive float values.
+Example:  
+If actual price = \$100 and predicted = \$120,  
+→ SMAPE = 18.18%
 
-3. Final model should be a MIT/Apache 2.0 License model and up to 8 Billion parameters.
+---
 
-### Evaluation Criteria:
+## 🧰 Tech Stack
 
-Submissions are evaluated using **Symmetric Mean Absolute Percentage Error (SMAPE)**: A statistical measure that expresses the relative difference between predicted and actual values as a percentage, while treating positive and negative errors equally.
+- **Language:** Python 3.10  
+- **Libraries:** pandas, numpy, sklearn, lightgbm, torch, torchvision, joblib, tqdm  
+- **Frameworks:** PyTorch, LightGBM  
+- **Environment:** Windows 11, AMD Ryzen 7 CPU, Radeon Integrated GPU
 
-**Formula:**
-```
-SMAPE = (1/n) * Σ |predicted_price - actual_price| / ((|actual_price| + |predicted_price|)/2)
-```
-
-**Example:** If actual price = $100 and predicted price = $120  
-SMAPE = |100-120| / ((|100| + |120|)/2) * 100% = 18.18%
-
-**Note:** SMAPE is bounded between 0% and 200%. Lower values indicate better performance.
-
-### Leaderboard Information:
-
-- **Public Leaderboard:** During the challenge, rankings will be based on 25K samples from the test set to provide real-time feedback on your model's performance.
-- **Final Rankings:** The final decision will be based on performance on the complete 75K test set along with provided documentation of the proposed approach by the teams.
-
-### Submission Requirements:
-
-1. Upload a `test_out.csv` file in the Portal with the exact same formatting as `sample_test_out.csv`
-
-2. All participating teams must also provide a 1-page document describing:
-   - Methodology used
-   - Model architecture/algorithms selected
-   - Feature engineering techniques applied
-   - Any other relevant information about the approach
-   Note: A sample template for this documentation is provided in Documentation_template.md
-
-### **Academic Integrity and Fair Play:**
-
-**⚠️ STRICTLY PROHIBITED: External Price Lookup**
-
-Participants are **STRICTLY NOT ALLOWED** to obtain prices from the internet, external databases, or any sources outside the provided dataset. This includes but is not limited to:
-- Web scraping product prices from e-commerce websites
-- Using APIs to fetch current market prices
-- Manual price lookup from online sources
-- Using any external pricing databases or services
-
-**Enforcement:**
-- All submitted approaches, methodologies, and code pipelines will be thoroughly reviewed and verified
-- Any evidence of external price lookup or data augmentation from internet sources will result in **immediate disqualification**
-
-**Fair Play:** This challenge is designed to test your machine learning and data science skills using only the provided training data. External price lookup defeats the purpose of the challenge.
-
-
-### Tips for Success:
-
-- Consider both textual features (catalog_content) and visual features (product images)
-- Explore feature engineering techniques for text and image data
-- Consider ensemble methods combining different model types
-- Pay attention to outliers and data preprocessing
+---
