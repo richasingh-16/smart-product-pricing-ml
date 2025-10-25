@@ -1,0 +1,14 @@
+﻿# Ignore temporary, data, and large files
+__pycache__/
+*.pyc
+*.pkl
+*.pt
+*.jpg
+*.jpeg
+*.png
+*.zip
+data/
+cache/
+images/
+train.csv
+test.csv
